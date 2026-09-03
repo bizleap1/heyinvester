@@ -1,0 +1,63 @@
+import { useNavigate } from 'react-router-dom';
+
+const statusLabel = { available: 'Available', 'coming-soon': 'Coming Soon', sold: 'Sold' };
+
+export default function PropertyCard({ property }) {
+  const { slug, name, location, pricePerSqft, plotSizes, type, status, approvals, loanEligible, image } = property;
+  const navigate = useNavigate();
+
+  return (
+    <article 
+      className="property-card"
+      onClick={() => navigate(`/properties/${slug}`)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="property-card__image">
+        <img src={image} alt={`${name} — ${location}`} loading="lazy" />
+        <span className={`property-card__status property-card__status--${status}`}>
+          {statusLabel[status]}
+        </span>
+        {property.rera && (
+          <div style={{ position: 'absolute', top: '12px', right: '12px', background: '#fff', border: '2px solid var(--gold-400)', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: 800, color: 'var(--green-950)', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 2 }}>
+            <span style={{ background: 'var(--green-50)', color: 'var(--green-800)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>RERA</span>
+            {property.rera}
+          </div>
+        )}
+      </div>
+
+      <div className="property-card__body">
+        <div className="property-card__price">
+          {pricePerSqft ? `₹${pricePerSqft.toLocaleString('en-IN')} / sq.ft.` : status === 'sold' ? 'Sold' : 'Price TBD'}
+        </div>
+        <h3 className="property-card__name">{name}</h3>
+        <div className="property-card__location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {location}
+        </div>
+
+        <div className="property-card__tags">
+          {approvals.map(a => (
+            <span key={a} className="property-card__tag">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              {a}
+            </span>
+          ))}
+          {loanEligible && (
+            <span className="property-card__tag property-card__tag--gold">90% Loan</span>
+          )}
+        </div>
+
+        <div className="property-card__footer">
+          <div className="property-card__meta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            {plotSizes.join(' / ')} sq.ft. · {type === 'mixed' ? 'Commercial / Residential' : 'Residential'}
+          </div>
+          <span className="property-card__link">
+            View
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
