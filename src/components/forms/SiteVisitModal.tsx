@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Check, Calendar, Phone, Mail, User, Building, MessageSquare, ArrowRight } from '@/components/ui/icons';
-import { PROJECTS } from '@/lib/projects-data';
-import { COMPANY_INFO } from '@/lib/company-data';
+import { getProjectsList } from '@/actions/projects';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 
 interface SiteVisitModalProps {
   isOpen: boolean;
@@ -29,6 +29,12 @@ export default function SiteVisitModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [projectsList, setProjectsList] = useState<any[]>([]);
+  const settings = useSiteSettings();
+
+  useEffect(() => {
+    getProjectsList().then(setProjectsList).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (defaultProjectSlug) {
@@ -73,25 +79,13 @@ export default function SiteVisitModal({
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch('/api/site-visit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        console.warn('API returned non-200, completing locally.');
-      }
-
-      setIsSuccess(true);
-    } catch {
-      setIsSuccess(true);
-    } finally {
-      setIsSubmitting(false);
-    }
+    const selectedProject = projectsList.find(p => p.slug === formData.projectSlug);
+    const projName = selectedProject?.name || 'a Nagpur project';
+    const msg = `Hello Hey Investor, I would like to book a site visit for ${projName}. My name is ${formData.fullName}. ${formData.preferredDate ? `Preferred Date: ${formData.preferredDate}.` : ''} ${formData.message}`;
+    
+    // Open WhatsApp
+    window.open(`${settings.whatsappUrl}?text=${encodeURIComponent(msg)}`, '_blank');
+    setIsSuccess(true);
   };
 
   const handleReset = () => {
@@ -163,7 +157,7 @@ export default function SiteVisitModal({
                   Done
                 </button>
                 <a
-                  href={`${COMPANY_INFO.whatsappUrl}?text=${encodeURIComponent(`Hello Hey Investor, I scheduled a site visit for ${formData.projectSlug || 'a Nagpur project'}. My name is ${formData.fullName}.`)}`}
+                  href={`${settings.whatsappUrl}?text=${encodeURIComponent(`Hello Hey Investor, I scheduled a site visit for ${formData.projectSlug || 'a Nagpur project'}. My name is ${formData.fullName}.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-secondary text-xs"
@@ -267,9 +261,9 @@ export default function SiteVisitModal({
                     className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#141414]/15 text-sm text-[#141414] focus:outline-none focus:border-[#141414] rounded-none transition appearance-none cursor-pointer"
                   >
                     <option value="">General Nagpur Consultation / Any Available Corridor</option>
-                    {PROJECTS.map((p) => (
+                    {projectsList.map((p) => (
                       <option key={p.slug} value={p.slug}>
-                        {p.name} ({p.location}) — {p.status === 'sold' ? 'Sold Out / Resale Inquiry' : p.status === 'coming-soon' ? 'Coming Soon' : 'Available'}
+                        {p.name} ({p.location}) — {p.status === 'sold_out' ? 'Sold Out / Resale Inquiry' : p.status === 'coming_soon' ? 'Coming Soon' : 'Available'}
                       </option>
                     ))}
                   </select>

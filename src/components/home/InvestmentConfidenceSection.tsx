@@ -1,14 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from '@/components/ui/icons';
-import { COMPANY_INFO } from '@/lib/company-data';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 
 export default function InvestmentConfidenceSection() {
+  const settings = useSiteSettings();
   const verifiedPoints = [
     {
       category: 'REGULATORY COMPLIANCE',
       title: 'MahaRERA & NMRDA Sanctions',
-      detail: `Operating as a registered real estate firm under MahaRERA Registration No. ${COMPANY_INFO.reraNumber}. All layouts are vetted for valid NMRDA or NIT sanctions with official Release Letters (RL).`,
+      detail: `Operating as a registered real estate firm under MahaRERA Registration No. ${settings.mahaReraNumber}. All layouts are vetted for valid NMRDA or NIT sanctions with official Release Letters (RL).`,
     },
     {
       category: 'INSTITUTIONAL FINANCE',
@@ -44,7 +45,7 @@ export default function InvestmentConfidenceSection() {
           </div>
           <div className="lg:col-span-4 lg:text-right">
             <p className="text-xs uppercase tracking-widest text-[#FAF8F5]/60 font-mono">
-              MahaRERA Reg. {COMPANY_INFO.reraNumber}
+              MahaRERA Reg. {settings.mahaReraNumber}
             </p>
           </div>
         </div>

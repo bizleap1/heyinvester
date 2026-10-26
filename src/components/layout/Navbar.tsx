@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, ArrowUpRight, ShieldCheck, QrCode } from '@/components/ui/icons';
 import { COMPANY_INFO } from '@/lib/company-data';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 import SiteVisitModal from '@/components/forms/SiteVisitModal';
 
 export default function Navbar() {
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [siteVisitOpen, setSiteVisitOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const settings = useSiteSettings();
 
   const isHome = pathname === '/';
 
@@ -85,7 +87,7 @@ export default function Navbar() {
               />
               <div className="flex flex-col justify-center">
                 <span className="text-[10px] md:text-[11px] text-[#56605A] font-sans uppercase tracking-wider font-medium leading-none mb-1.5">MahaRERA Registration No.</span>
-                <span className="text-[13px] md:text-[15px] text-[#1F1F1F] font-sans font-bold leading-none">{COMPANY_INFO.reraNumber}</span>
+                <span className="text-[13px] md:text-[15px] text-[#1F1F1F] font-sans font-bold leading-none">{settings.mahaReraNumber}</span>
               </div>
             </div>
           </div>
@@ -116,7 +118,7 @@ export default function Navbar() {
 
             {/* CTA */}
             <a
-              href={`${COMPANY_INFO.whatsappUrl}?text=${encodeURIComponent('Hi, I would like a free consultation with your property experts.')}`}
+              href={`${settings.whatsappUrl}?text=${encodeURIComponent('Hi, I would like a free consultation with your property experts.')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center justify-center gap-2 h-[44px] px-6 text-[14px] font-sans font-semibold rounded-[8px] bg-[#139D46] text-white hover:bg-[#10853B] transition-colors"
@@ -172,7 +174,7 @@ export default function Navbar() {
           <div className="border-t border-[#E7E3DA] pt-6 space-y-4">
             <div className="flex items-center justify-between text-xs text-[#56605A]">
               <span>MahaRERA Registration No.</span>
-              <span className="font-bold text-[#111714]">{COMPANY_INFO.reraNumber}</span>
+              <span className="font-bold text-[#111714]">{settings.mahaReraNumber}</span>
             </div>
 
             <button
@@ -187,10 +189,10 @@ export default function Navbar() {
             </button>
 
             <div className="flex justify-between items-center text-xs text-[#56605A] pt-2">
-              <a href={`tel:${COMPANY_INFO.phoneRaw}`} className="hover:text-[#139D46] font-medium">
-                {COMPANY_INFO.phone}
+              <a href={`tel:${settings.phoneRaw}`} className="hover:text-[#139D46] font-medium">
+                {settings.phone}
               </a>
-              <a href={COMPANY_INFO.whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#139D46] font-medium">
+              <a href={settings.whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#139D46] font-medium">
                 WhatsApp Direct
               </a>
             </div>
@@ -227,7 +229,7 @@ export default function Navbar() {
             <div>
               <p className="text-xs text-[#141414]/65 uppercase tracking-wider">Registration Number</p>
               <p className="font-semibold text-[#141414] tracking-wider text-base mt-0.5">
-                {COMPANY_INFO.reraNumber}
+                {settings.mahaReraNumber}
               </p>
             </div>
             <p className="text-[11px] text-[#141414]/65 leading-relaxed">

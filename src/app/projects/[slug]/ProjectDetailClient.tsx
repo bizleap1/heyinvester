@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -8,9 +8,17 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from '@/components/ui/icons';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Camera,
+  X,
+  Images,
+} from 'lucide-react';
 import { Project } from '@/types';
 import SiteVisitModal from '@/components/forms/SiteVisitModal';
-import { COMPANY_INFO } from '@/lib/company-data';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 
 interface ProjectDetailClientProps {
   project: Project;
@@ -18,9 +26,27 @@ interface ProjectDetailClientProps {
 
 export default function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const [siteVisitOpen, setSiteVisitOpen] = useState(false);
-  const [selectedGalleryImg, setSelectedGalleryImg] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const settings = useSiteSettings();
 
-  const images = project.gallery && project.gallery.length > 0 ? project.gallery : [project.image];
+  // Combine cover image and all uploaded gallery images into one unified list
+  const allPhotos: string[] = Array.from(
+    new Set([project.image, ...(project.gallery || [])].filter(Boolean) as string[])
+  );
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % allPhotos.length);
+      if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + allPhotos.length) % allPhotos.length);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, allPhotos.length]);
 
   return (
     <div className="bg-[#FAF8F5] text-[#141414]">
@@ -66,9 +92,9 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
               </span>
 
               {project.rera && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] uppercase tracking-widest font-medium bg-black/60 text-white/90 border border-white/15">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#6E745F]" />
-                  MahaRERA: {project.rera}
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-black/90 text-white rounded-md shadow-md border border-white/25">
+                  <ShieldCheck className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  <span>MahaRERA: <strong className="font-mono text-white tracking-widest font-extrabold">{project.rera}</strong></span>
                 </span>
               )}
             </div>
@@ -85,19 +111,29 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
               <button
                 type="button"
                 onClick={() => setSiteVisitOpen(true)}
-                className="btn-primary-dark text-xs px-8 py-3.5 tracking-[0.12em]"
+                className="btn-primary-dark text-xs px-8 py-3.5 tracking-[0.12em] cursor-pointer"
               >
                 Schedule Site Visit
               </button>
 
               <a
-                href={`${COMPANY_INFO.whatsappUrl}?text=${encodeURIComponent(`Hello, I would like to inquire about ${project.name} in ${project.location}.`)}`}
+                href={`${settings.whatsappUrl}?text=${encodeURIComponent(`Hello, I would like to inquire about ${project.name} in ${project.location}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-outline-paper text-xs px-8 py-3.5 tracking-[0.12em]"
               >
                 Inquire on WhatsApp
               </a>
+
+              {allPhotos.length > 1 && (
+                <a
+                  href="#project-photos"
+                  className="inline-flex items-center gap-2 text-xs px-6 py-3.5 tracking-[0.12em] bg-white/10 hover:bg-white/20 text-white border border-white/25 backdrop-blur-xs transition-colors cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5 text-white/90" />
+                  <span>View All Photos ({allPhotos.length})</span>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -150,7 +186,132 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         </div>
       </section>
 
-      {/* 02 Project Overview & Long Description */}
+      {/* 02 On-Location Property Photos & Gallery (IMMEDIATELY BELOW HERO HEADER) */}
+      {allPhotos.length > 0 && (
+        <section id="project-photos" className="py-12 md:py-18 bg-white border-b border-[#141414]/10">
+          <div className="max-w-[1520px] mx-auto px-6 md:px-12 space-y-6">
+            {/* Gallery Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#141414]/10">
+              <div>
+                <span className="editorial-label text-[#6E745F]">Visual Documentation</span>
+                <h2 className="font-display font-medium text-2xl sm:text-3xl text-[#141414] tracking-[-0.03em] uppercase">
+                  Property Imagery &amp; Real Site Photos
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider bg-[#FAF8F5] border border-[#141414]/15 text-[#141414] rounded-md">
+                  {allPhotos.length} {allPhotos.length === 1 ? 'Photo' : 'Photos'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLightboxIndex(activePhotoIndex);
+                    setLightboxOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wider bg-[#141414] text-white hover:bg-black transition-colors rounded-md cursor-pointer"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Fullscreen View</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Main Stage Image Viewer */}
+            <div className="relative w-full aspect-[16/9] md:aspect-[21/9] max-h-[620px] bg-[#141414] overflow-hidden rounded-2xl border border-[#141414]/15 shadow-sm group">
+              <Image
+                src={allPhotos[activePhotoIndex]}
+                alt={`${project.name} photo ${activePhotoIndex + 1}`}
+                fill
+                priority
+                sizes="(max-width: 1520px) 100vw, 1520px"
+                className="object-cover transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+              {/* Bottom Info Bar */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white pointer-events-auto">
+                <span className="px-3 py-1.5 text-xs font-mono font-medium bg-black/75 backdrop-blur-md border border-white/20 rounded-lg">
+                  Photo {activePhotoIndex + 1} of {allPhotos.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLightboxIndex(activePhotoIndex);
+                    setLightboxOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 text-xs font-mono uppercase tracking-wider bg-white/95 text-black hover:bg-white rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Enlarge</span>
+                </button>
+              </div>
+
+              {/* Arrow Controls (for multiple photos) */}
+              {allPhotos.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setActivePhotoIndex((prev) => (prev > 0 ? prev - 1 : allPhotos.length - 1))}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all opacity-90 hover:opacity-100 cursor-pointer shadow-lg"
+                    aria-label="Previous photo"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActivePhotoIndex((prev) => (prev < allPhotos.length - 1 ? prev + 1 : 0))}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all opacity-90 hover:opacity-100 cursor-pointer shadow-lg"
+                    aria-label="Next photo"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Interactive Thumbnail Carousel Strip */}
+            {allPhotos.length > 1 && (
+              <div className="space-y-2">
+                <p className="text-xs text-[#141414]/60 font-medium">
+                  Click any thumbnail to preview on the main stage:
+                </p>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+                  {allPhotos.map((photo, index) => {
+                    const isActive = index === activePhotoIndex;
+                    return (
+                      <button
+                        key={photo + index}
+                        type="button"
+                        onClick={() => setActivePhotoIndex(index)}
+                        className={`relative shrink-0 w-28 sm:w-36 aspect-[16/10] rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                          isActive
+                            ? 'border-[#141414] ring-2 ring-[#141414]/25 scale-102 shadow-sm'
+                            : 'border-[#141414]/15 opacity-70 hover:opacity-100 hover:border-[#141414]/40'
+                        }`}
+                      >
+                        <Image
+                          src={photo}
+                          alt={`Thumbnail ${index + 1}`}
+                          fill
+                          sizes="144px"
+                          className="object-cover"
+                        />
+                        {isActive && (
+                          <span className="absolute bottom-1 right-1 px-1.5 py-0.5 text-[9px] font-mono font-bold bg-[#141414] text-white rounded-xs">
+                            Active
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* 03 Project Overview & Long Description */}
       <section className="py-20 md:py-32 max-w-[1520px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           <div className="lg:col-span-4 space-y-4">
@@ -164,9 +325,14 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
                 <span>Promoted By</span>
                 <span className="font-medium text-[#141414]">Hey Investor Pvt. Ltd.</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-[#141414]/5">
-                <span>RERA Registration</span>
-                <span className="font-medium text-[#141414]">{project.rera || COMPANY_INFO.reraNumber}</span>
+              <div className="flex justify-between items-center py-2.5 px-3 bg-white border border-[#141414] rounded-lg shadow-2xs">
+                <span className="font-bold text-[#141414] text-xs flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#141414]" strokeWidth={2.5} />
+                  MahaRERA Reg.
+                </span>
+                <span className="font-mono font-extrabold text-[#141414] text-xs sm:text-sm tracking-wide">
+                  {project.rera || settings.mahaReraNumber}
+                </span>
               </div>
               <div className="flex justify-between py-1 border-b border-[#141414]/5">
                 <span>Classification</span>
@@ -191,7 +357,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         </div>
       </section>
 
-      {/* 03 Nearby Landmarks & Distance Matrix */}
+      {/* 04 Nearby Landmarks & Distance Matrix */}
       {project.additionalDetails && project.additionalDetails.length > 0 && (
         <section className="py-16 md:py-24 bg-[#FAF8F5] border-y border-[#141414]/10">
           <div className="max-w-[1520px] mx-auto px-6 md:px-12">
@@ -224,7 +390,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         </section>
       )}
 
-      {/* 04 Amenities & On-Site Civil Infrastructure */}
+      {/* 05 Amenities & On-Site Civil Infrastructure */}
       {project.features && project.features.length > 0 && (
         <section className="py-20 md:py-32 max-w-[1520px] mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -256,59 +422,70 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         </section>
       )}
 
-      {/* 05 Real Site Gallery */}
-      {images.length > 0 && (
-        <section className="py-16 md:py-24 bg-[#FAF8F5] border-t border-[#141414]/10">
-          <div className="max-w-[1520px] mx-auto px-6 md:px-12 space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="editorial-label">Visual Documentation</span>
-                <h2 className="font-display font-medium text-2xl sm:text-3xl text-[#141414] tracking-[-0.03em] uppercase">
-                  On-Location Gallery
-                </h2>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {images.map((imgUrl, i) => (
-                <div
-                  key={imgUrl + i}
-                  className="relative aspect-[4/3] w-full overflow-hidden bg-[#141414]/5 group cursor-pointer border border-[#141414]/10"
-                  onClick={() => setSelectedGalleryImg(imgUrl)}
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={`${project.name} site image ${i + 1}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="px-3 py-1.5 bg-[#FAF8F5] text-[#141414] text-[10px] uppercase font-mono tracking-wider shadow-xs">
-                      Expand Image
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Lightbox */}
-      {selectedGalleryImg && (
+      {/* Fullscreen Lightbox Modal */}
+      {lightboxOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141414]/90 backdrop-blur-md"
-          onClick={() => setSelectedGalleryImg(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
+          onClick={() => setLightboxOpen(false)}
         >
-          <div className="relative max-w-5xl max-h-[85vh] w-full h-full">
+          {/* Top Bar */}
+          <div 
+            className="absolute top-4 left-6 right-6 flex items-center justify-between text-white z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="text-xs font-mono font-bold tracking-wider px-3 py-1.5 rounded-md bg-white/10 backdrop-blur-md border border-white/20">
+              Photo {lightboxIndex + 1} of {allPhotos.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(false)}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              title="Close (Esc)"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Main Image */}
+          <div 
+            className="relative max-w-6xl max-h-[85vh] w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
-              src={selectedGalleryImg}
-              alt="Enlarged gallery view"
+              src={allPhotos[lightboxIndex]}
+              alt={`Photo ${lightboxIndex + 1}`}
               fill
               className="object-contain"
             />
           </div>
+
+          {/* Lightbox Prev / Next Arrows */}
+          {allPhotos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev > 0 ? prev - 1 : allPhotos.length - 1));
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all cursor-pointer"
+                title="Previous (Left Arrow)"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev < allPhotos.length - 1 ? prev + 1 : 0));
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all cursor-pointer"
+                title="Next (Right Arrow)"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -326,15 +503,15 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             <button
               type="button"
               onClick={() => setSiteVisitOpen(true)}
-              className="btn-primary-dark text-xs px-8 py-3.5 tracking-[0.12em]"
+              className="btn-primary-dark text-xs px-8 py-3.5 tracking-[0.12em] cursor-pointer"
             >
               Book Private Inspection
             </button>
             <a
-              href={`tel:${COMPANY_INFO.phoneRaw}`}
+              href={`tel:${settings.phoneRaw}`}
               className="btn-outline-paper text-xs px-8 py-3.5 tracking-[0.12em]"
             >
-              Call {COMPANY_INFO.phone}
+              Call {settings.phone}
             </a>
           </div>
         </div>
@@ -349,3 +526,4 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
     </div>
   );
 }
+

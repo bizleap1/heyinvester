@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import PublicLayoutWrapper from '@/components/layout/PublicLayoutWrapper';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import { COMPANY_INFO } from '@/lib/company-data';
+import { getSiteSettings } from '@/actions/settings';
+import { SiteSettingsProvider } from '@/components/layout/SiteSettingsProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.heyinvestor.in'),
@@ -73,11 +74,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSiteSettings();
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
@@ -88,13 +91,13 @@ export default function RootLayout({
     logo: 'https://www.heyinvestor.in/logo%20(1).png',
     image: 'https://www.heyinvestor.in/hero-bg.png',
     description: COMPANY_INFO.descriptor,
-    telephone: COMPANY_INFO.phone,
-    email: COMPANY_INFO.email,
+    telephone: settings.phone,
+    email: settings.email,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: `${COMPANY_INFO.address.line1}, ${COMPANY_INFO.address.line2}`,
-      addressLocality: COMPANY_INFO.address.city,
-      addressRegion: COMPANY_INFO.address.state,
+      streetAddress: settings.address.replace(/\n/g, ', '),
+      addressLocality: 'Nagpur',
+      addressRegion: 'Maharashtra',
       addressCountry: 'IN',
     },
     geo: {
@@ -105,7 +108,7 @@ export default function RootLayout({
     identifier: {
       '@type': 'PropertyValue',
       name: 'MahaRERA Registration Number',
-      value: COMPANY_INFO.reraNumber,
+      value: settings.mahaReraNumber,
     },
     areaServed: {
       '@type': 'City',
@@ -146,11 +149,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans bg-[#FAF8F5] text-[#141414] selection:bg-[#6E745F] selection:text-[#FAF8F5]">
-        <SmoothScroll>
-          <Navbar />
-          <main className="min-h-screen pt-0">{children}</main>
-          <Footer />
-        </SmoothScroll>
+        <SiteSettingsProvider settings={settings}>
+          <SmoothScroll>
+            <PublicLayoutWrapper>
+              {children}
+            </PublicLayoutWrapper>
+          </SmoothScroll>
+        </SiteSettingsProvider>
       </body>
     </html>
   );

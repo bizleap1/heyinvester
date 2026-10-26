@@ -15,9 +15,15 @@ import {
   ArrowRight
 } from '@/components/ui/icons';
 import { COMPANY_INFO } from '@/lib/company-data';
-import { PROJECTS } from '@/lib/projects-data';
+import { getProjectsList } from '@/actions/projects';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 
 export default function ContactClient() {
+  const [projectsList, setProjectsList] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    getProjectsList().then(setProjectsList).catch(console.error);
+  }, []);
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -31,6 +37,7 @@ export default function ContactClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const settings = useSiteSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,24 +56,13 @@ export default function ContactClient() {
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch('/api/site-visit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        console.warn('API returned non-200, completing locally.');
-      }
-      setIsSuccess(true);
-    } catch {
-      setIsSuccess(true);
-    } finally {
-      setIsSubmitting(false);
-    }
+    const selectedProject = projectsList.find(p => p.slug === formData.projectSlug);
+    const projName = selectedProject?.name || 'Nagpur plots';
+    const msg = `Hello Hey Investor, I would like a free consultation regarding ${projName}. My name is ${formData.fullName}. ${formData.preferredDate ? `Preferred Date: ${formData.preferredDate}.` : ''} ${formData.message}`;
+    
+    // Open WhatsApp
+    window.open(`${settings.whatsappUrl}?text=${encodeURIComponent(msg)}`, '_blank');
+    setIsSuccess(true);
   };
 
   return (
@@ -123,7 +119,7 @@ export default function ContactClient() {
                     Submit Another Request
                   </button>
                   <a
-                    href={`${COMPANY_INFO.whatsappUrl}?text=${encodeURIComponent(`Hello Hey Investor, I submitted a site visit request for ${formData.fullName}.`)}`}
+                    href={`${settings.whatsappUrl}?text=${encodeURIComponent(`Hello Hey Investor, I submitted a site visit request for ${formData.fullName}.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-[48px] inline-flex items-center justify-center px-8 bg-[#139D46] text-white rounded-[12px] font-sans font-semibold text-[14px] hover:bg-[#10853B] transition-all duration-300 shadow-[0_4px_14px_rgba(19,157,70,0.3)] hover:shadow-[0_6px_20px_rgba(19,157,70,0.4)]"
@@ -221,9 +217,9 @@ export default function ContactClient() {
                       className="w-full pl-12 pr-4 py-3 bg-[#FAF9F6] border border-[#E7E3DA] text-[#111714] text-sm rounded-[12px] focus:outline-none focus:border-[#139D46] focus:ring-1 focus:ring-[#139D46] transition-all appearance-none cursor-pointer"
                     >
                       <option value="">General Nagpur Consultation / Any Available Corridor</option>
-                      {PROJECTS.map((p) => (
+                      {projectsList.map((p) => (
                         <option key={p.slug} value={p.slug}>
-                          {p.name} ({p.location}) — {p.status === 'sold' ? 'Sold Out' : p.status === 'coming-soon' ? 'Upcoming' : 'Available'}
+                          {p.name} ({p.location}) — {p.status === 'sold_out' ? 'Sold Out' : p.status === 'coming_soon' ? 'Upcoming' : 'Available'}
                         </option>
                       ))}
                     </select>
@@ -295,10 +291,8 @@ export default function ContactClient() {
                   <div className="w-8 h-8 flex items-center justify-center bg-[#FAF9F6] border border-[#E7E3DA] rounded-full flex-shrink-0">
                     <MapPin className="w-4 h-4 text-[#139D46]" />
                   </div>
-                  <address className="not-italic leading-relaxed mt-1">
-                    {COMPANY_INFO.address.line1},<br />
-                    {COMPANY_INFO.address.line2},<br />
-                    {COMPANY_INFO.address.city}, {COMPANY_INFO.address.state}
+                  <address className="not-italic leading-relaxed mt-1 whitespace-pre-wrap">
+                    {settings.address}
                   </address>
                 </div>
 
@@ -306,8 +300,8 @@ export default function ContactClient() {
                   <div className="w-8 h-8 flex items-center justify-center bg-[#FAF9F6] border border-[#E7E3DA] rounded-full flex-shrink-0">
                     <Phone className="w-4 h-4 text-[#139D46]" />
                   </div>
-                  <a href={`tel:${COMPANY_INFO.phoneRaw}`} className="text-[#111714] hover:text-[#139D46] font-medium transition-colors">
-                    {COMPANY_INFO.phone}
+                  <a href={`tel:${settings.phoneRaw}`} className="text-[#111714] hover:text-[#139D46] font-medium transition-colors">
+                    {settings.phone}
                   </a>
                 </div>
 
@@ -315,8 +309,8 @@ export default function ContactClient() {
                   <div className="w-8 h-8 flex items-center justify-center bg-[#FAF9F6] border border-[#E7E3DA] rounded-full flex-shrink-0">
                     <Mail className="w-4 h-4 text-[#139D46]" />
                   </div>
-                  <a href={`mailto:${COMPANY_INFO.email}`} className="text-[#111714] hover:text-[#139D46] transition-colors">
-                    {COMPANY_INFO.email}
+                  <a href={`mailto:${settings.email}`} className="text-[#111714] hover:text-[#139D46] transition-colors">
+                    {settings.email}
                   </a>
                 </div>
               </div>
@@ -341,7 +335,7 @@ export default function ContactClient() {
                   </span>
                 </div>
                 <strong className="text-[18px] font-sans text-[#111714] block mb-2">
-                  {COMPANY_INFO.reraNumber}
+                  {settings.mahaReraNumber}
                 </strong>
                 <span className="text-[13px] text-[#56605A] leading-relaxed block">
                   Scan QR to verify regulatory accreditation on the official MahaRERA portal.

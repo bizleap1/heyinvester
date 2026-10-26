@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { ArrowRight, Phone } from '@/components/ui/icons';
 import SiteVisitModal from '@/components/forms/SiteVisitModal';
-import { COMPANY_INFO } from '@/lib/company-data';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
 
 export default function FinalCtaSection() {
   const [siteVisitOpen, setSiteVisitOpen] = useState(false);
+  const settings = useSiteSettings();
 
   return (
     <>
@@ -53,16 +54,16 @@ export default function FinalCtaSection() {
               </button>
 
               <a
-                href={`tel:${COMPANY_INFO.phoneRaw}`}
+                href={`tel:${settings.phoneRaw}`}
                 className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-[#FAF8F5]/80 hover:text-white transition-colors py-3"
               >
                 <Phone className="w-3.5 h-3.5 text-[#6E745F]" />
-                <span>Call {COMPANY_INFO.phone}</span>
+                <span>Call {settings.phone}</span>
               </a>
             </div>
 
             <div className="pt-8 text-[11px] uppercase tracking-widest text-[#FAF8F5]/40 font-mono">
-              MahaRERA: {COMPANY_INFO.reraNumber} · Nagpur, Maharashtra
+              MahaRERA: {settings.mahaReraNumber} · Nagpur, Maharashtra
             </div>
           </div>
         </div>

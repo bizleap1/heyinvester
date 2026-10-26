@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hey Investor - Real Estate Platform
 
-## Getting Started
+A premium plotted real estate platform for Nagpur & Vidarbha. This project includes a modern Next.js frontend with a full-stack backend (Admin Panel, Database, Authentication, and Media Management).
 
-First, run the development server:
+## Tech Stack
+- **Framework**: Next.js (App Router)
+- **Styling**: Tailwind CSS
+- **Database**: Neon PostgreSQL + Drizzle ORM
+- **Authentication**: Better Auth
+- **Media**: Cloudinary
+- **Validation**: Zod + React Hook Form
+
+## Setup Instructions
+
+### 1. Environment Variables
+Copy `.env.example` to `.env` and fill in the missing credentials.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ensure `.env` contains:
+- `DATABASE_URL` (Neon PostgreSQL)
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL=http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Database Migrations & Seeding
+Push the schema to your Neon PostgreSQL database:
+```bash
+npm run db:migrate
+```
 
-## Learn More
+Seed the database with initial projects and settings:
+```bash
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) with your browser to view the site.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Admin Panel
+- **URL**: `/admin`
+- **Login**: `/admin/login`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To access the admin panel, you must be registered as an admin. Since Better Auth handles sessions, you can use the built-in API or seed an admin user in your database manually to test the login.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Folder Structure
+- `src/app`: Next.js App Router (Public Pages & Admin Panel)
+- `src/components`: UI Components, Forms, Sections
+- `src/db`: Database schema, migrations, and seeding scripts
+- `src/actions`: Next.js Server Actions for CRUD operations
+- `src/schemas`: Zod schemas for form validation and type safety
+- `src/lib`: Utilities (Cloudinary, Auth, Data formatting)

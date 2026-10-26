@@ -1,9 +1,11 @@
 import { MetadataRoute } from 'next';
-import { PROJECTS } from '@/lib/projects-data';
+import { db } from '@/db';
+import { projects as projectsTable } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { INSIGHT_ARTICLES } from '@/lib/insights-data';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.heyinvestor.in';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.heyinvestor.in';
 
   // Core static routes
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -40,9 +42,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   // Dynamic projects routes
-  const projectRoutes: MetadataRoute.Sitemap = PROJECTS.map((p) => ({
+  const publishedProjects = await db.query.projects.findMany({
+    where: eq(projectsTable.published, true)
+  });
+  
+  const projectRoutes: MetadataRoute.Sitemap = publishedProjects.map((p) => ({
     url: `${baseUrl}/projects/${p.slug}`,
-    lastModified: new Date(),
+    lastModified: new Date(p.updatedAt),
     changeFrequency: 'weekly',
     priority: 0.85,
   }));

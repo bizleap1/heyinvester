@@ -17,7 +17,7 @@ import {
 import { COMPANY_INFO } from '@/lib/company-data';
 import TextReveal from '@/components/ui/TextReveal';
 
-const heroImages = [
+const defaultImages = [
   '/hero_slider/slider1-v2.jpg',
   '/hero_slider/slider2-v2.jpg',
   '/hero_slider/slider3.jpg',
@@ -25,24 +25,46 @@ const heroImages = [
   '/hero_slider/slider5.jpg'
 ];
 
-export default function HeroSection() {
+export default function HeroSection({ 
+  slides, 
+  interval = 2500 
+}: { 
+  slides?: any[]; 
+  interval?: number; 
+}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
-  const handleConsultationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = `Hi, I would like a free consultation. My name is ${formData.name} and my phone number is ${formData.phone}.`;
-    const waUrl = `${COMPANY_INFO.whatsappUrl}?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, '_blank');
-  };
+  const displaySlides = slides?.length 
+    ? slides 
+    : defaultImages.map(src => ({ desktopImageUrl: src, mobileImageUrl: src, heading: '', subheading: '', ctaLabel: '', ctaUrl: '' }));
+
+  const activeInterval = interval && interval >= 500 ? interval : 2500;
 
   useEffect(() => {
+    if (isPaused || displaySlides.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 2000); // Change image every 2 seconds
+      setCurrentImageIndex((prev) => (prev + 1) % displaySlides.length);
+    }, activeInterval); 
     return () => clearInterval(timer);
-  }, []);
+  }, [displaySlides.length, isPaused, activeInterval]);
+
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+    if (distance > minSwipeDistance) {
+      setCurrentImageIndex((prev) => (prev + 1) % displaySlides.length);
+    } else if (distance < -minSwipeDistance) {
+      setCurrentImageIndex((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
+    }
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   return (
     <section className="relative w-full min-h-screen lg:h-[100svh] bg-[#FAF9F6] pt-[74px] flex flex-col lg:flex-row overflow-hidden">
@@ -66,7 +88,7 @@ export default function HeroSection() {
 
           {/* Supporting Text */}
           <TextReveal 
-            text="NMRDA and RL-approved residential and commercial plots in Nagpur's fastest growing corridors — Wardha Road, Hingna and Amravati Road."
+            text="NMRDA and RL-approved residential and commercial plots in Nagpur's fastest growing corridors — Wardha Road, Hingna, Amravati Road and Koradi Road."
             className="font-sans text-[15px] md:text-[16px] xl:text-[18px] text-[#56605A] leading-relaxed max-w-[600px] mb-6"
             delay={0.2}
           />
@@ -106,32 +128,51 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Right Image Column (Diagonal Cut on Desktop) */}
+      {/* Right Image Column (Clean Full Frame, No Diagonal Cut) */}
       <div 
-        className="w-full lg:w-[55%] order-1 lg:order-2 lg:absolute lg:top-0 lg:right-0 lg:bottom-0 lg:h-full relative min-h-[400px] sm:min-h-[500px] lg:min-h-0 bg-[#1F1F1F] lg:[clip-path:polygon(7%_0,100%_0,100%_100%,0_100%)]"
+        className="w-full lg:w-[55%] order-1 lg:order-2 lg:absolute lg:top-0 lg:right-0 lg:bottom-0 lg:h-full relative min-h-[400px] sm:min-h-[500px] lg:min-h-0 bg-[#1F1F1F] overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        {heroImages.map((src, index) => (
-          <Image
-            key={src}
-            src={src}
-            alt={`Nagpur Aerial Plotted Development ${index + 1}`}
-            fill
-            priority={index === 0}
-            quality={90}
-            className={`object-cover ${
-              src.includes('slider1') || src.includes('slider2') || src.includes('slider4') || src.includes('slider5') ? 'object-[85%_center] sm:object-right' : 'object-center'
-            } transition-opacity duration-1000 ease-in-out ${
-              index === currentImageIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
-            }`}
-          />
-        ))}
+        {displaySlides.map((slide, index) => {
+          const desktopPos = (slide.desktopImageUrl.includes('slider1') || slide.desktopImageUrl.includes('slider2') || slide.desktopImageUrl.includes('slider4') || slide.desktopImageUrl.includes('slider5'))
+            ? 'object-[85%_center] sm:object-right'
+            : 'object-center';
+          const mobilePos = (slide.mobileImageUrl || slide.desktopImageUrl).includes('slider3')
+            ? 'object-center'
+            : 'object-[85%_center]';
+
+          return (
+            <div key={slide.desktopImageUrl + index} className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentImageIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'}`}>
+              <Image
+                src={slide.desktopImageUrl}
+                alt={slide.heading || `Nagpur Aerial Plotted Development ${index + 1}`}
+                fill
+                priority={index === 0}
+                quality={90}
+                className={`object-cover hidden sm:block ${desktopPos}`}
+              />
+              <Image
+                src={slide.mobileImageUrl || slide.desktopImageUrl}
+                alt={slide.heading || `Nagpur Aerial Plotted Development ${index + 1}`}
+                fill
+                priority={index === 0}
+                quality={90}
+                className={`object-cover block sm:hidden ${mobilePos}`}
+              />
+            </div>
+          );
+        })}
 
         {/* Subtle overlay */}
         <div className="absolute inset-0 bg-black/10 z-10 pointer-events-none" />
 
         {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 lg:left-[calc(50%+3.5%)] -translate-x-1/2 flex items-center gap-3 z-20">
-          {heroImages.map((_, index) => (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
+          {displaySlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentImageIndex(index)}

@@ -65,8 +65,8 @@ export const CORRIDORS = [
     relevance: 'Robust employment anchor, Metro Phase extensions, and sustained rental & capital appreciation.',
   },
   {
-    name: 'Godhani & North Nagpur',
-    summary: 'Rapidly emerging urban residential precinct with direct DP road connectivity, railway connectivity, and prominent international schooling.',
-    relevance: 'Fast-paced municipal infrastructure growth, clear NMRDA/RL layouts, and peaceful family living.',
+    name: 'Koradi Road & North Nagpur',
+    summary: 'Rapidly emerging northern corridor with direct access to Koradi Temple & Lake, Outer Ring Road interchange, and Godhani residential hubs.',
+    relevance: 'High residential preference, peaceful lakefront living, expanding transit infrastructure, and clear NMRDA/RL plotted layouts.',
   },
 ];

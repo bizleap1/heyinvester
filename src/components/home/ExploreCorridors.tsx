@@ -42,6 +42,19 @@ const CORRIDORS = [
       'Logistics & Warehousing',
       'Emerging Residential Projects'
     ]
+  },
+  {
+    id: 'Koradi',
+    name: 'Koradi Road',
+    image: '/images/generated/koradi_road.jpg',
+    imagePosition: 'center bottom',
+    subtitle: 'Fast-growing northern corridor with major infrastructure & lakefront growth',
+    landmarks: [
+      'Koradi Temple & Lake',
+      'Outer Ring Road Access',
+      'Mahagenco Power Hub',
+      'Emerging Residential Layouts'
+    ]
   }
 ];
 
@@ -69,16 +82,17 @@ export default function ExploreCorridors() {
         </FadeIn>
 
         {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
           
           {/* Left: Premium Illustrated Map */}
-          <FadeIn direction="right" className="w-full">
-            <div className="w-full bg-[#FAF9F6] border border-[#E7E3DA] rounded-[12px] p-6 relative min-h-[300px] sm:min-h-[400px] xl:min-h-[600px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center h-full">
-              <div className="relative w-full h-full min-h-[250px] sm:min-h-[350px] xl:min-h-[500px]">
+          <FadeIn direction="right" className="w-full h-full">
+            <div className="w-full bg-[#FAF9F6] border border-[#E7E3DA] rounded-[12px] p-6 relative min-h-[350px] sm:min-h-[450px] lg:min-h-[620px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center h-full">
+              <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] lg:min-h-[560px]">
                 <Image
-                  src="/globe.png"
+                  src="/new-koradi.png"
                   alt="Nagpur Investment Corridors Map"
                   fill
+                  priority
                   className="object-contain"
                 />
               </div>
@@ -86,14 +100,14 @@ export default function ExploreCorridors() {
           </FadeIn>
 
           {/* Right: Corridor Cards */}
-          <div className="w-full grid grid-cols-2 lg:flex lg:flex-col gap-3 sm:gap-5">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-3 sm:gap-4 justify-between">
             {CORRIDORS.map((corridor, idx) => (
-              <FadeIn key={corridor.id} direction="left" delay={idx * 0.1} className={`h-full ${idx === 2 ? 'col-span-2 sm:col-span-1 lg:col-span-1' : 'col-span-1'}`}>
+              <FadeIn key={corridor.id} direction="left" delay={idx * 0.08} className="w-full h-full">
                 <div 
-                  className={`bg-white border border-[#E7E3DA] rounded-[12px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col lg:flex-row group transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] h-full`}
+                  className="bg-white border border-[#E7E3DA] rounded-[12px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row group transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] h-full"
                 >
                   {/* Image */}
-                  <div className="relative w-full lg:w-[35%] xl:w-[40%] aspect-[4/3] lg:aspect-auto lg:min-h-full bg-[#F2EFE9] overflow-hidden shrink-0">
+                  <div className="relative w-full sm:w-[32%] lg:w-[32%] xl:w-[35%] aspect-[16/9] sm:aspect-auto sm:min-h-full bg-[#F2EFE9] overflow-hidden shrink-0">
                     <Image
                       src={corridor.image}
                       alt={corridor.name}
@@ -101,34 +115,35 @@ export default function ExploreCorridors() {
                       quality={90}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      style={{ objectPosition: (corridor as any).imagePosition || 'center' }}
                     />
                   </div>
 
                   {/* Content */}
-                  <div className="p-3 sm:p-5 lg:p-6 flex flex-col flex-grow justify-center">
+                  <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col flex-grow justify-center">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-display text-[15px] sm:text-[20px] lg:text-[24px] text-[#111714] leading-tight">
+                      <h3 className="font-display text-[15px] sm:text-[18px] lg:text-[20px] text-[#111714] leading-tight">
                         {corridor.name}
                       </h3>
                     </div>
-                    <p className="font-sans text-[11px] sm:text-[13px] lg:text-[14px] text-[#56605A] mb-3 lg:mb-4 line-clamp-2 lg:line-clamp-none">
+                    <p className="font-sans text-[11px] sm:text-[12px] lg:text-[13px] text-[#56605A] mb-2 line-clamp-2">
                       {corridor.subtitle}
                     </p>
 
-                    <ul className="flex flex-col sm:grid sm:grid-cols-2 gap-y-1 sm:gap-y-2 gap-x-4 mb-4 lg:mb-6">
+                    <ul className="grid grid-cols-2 gap-y-1 gap-x-3 mb-3">
                       {corridor.landmarks.map((landmark, lIdx) => (
-                        <li key={lIdx} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-[12px] text-[#111714]">
-                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#139D46] mt-0.5 shrink-0" />
-                          <span className="leading-tight">{landmark}</span>
+                        <li key={lIdx} className="flex items-start gap-1.5 text-[10px] sm:text-[11px] text-[#111714]">
+                          <MapPin className="w-3 h-3 text-[#139D46] mt-0.5 shrink-0" />
+                          <span className="leading-tight truncate">{landmark}</span>
                         </li>
                       ))}
                     </ul>
 
                     <Link 
                       href={`/projects?corridor=${corridor.id}`}
-                      className="w-max inline-flex items-center justify-center gap-1.5 sm:gap-2 text-[#139D46] font-sans font-semibold text-[11px] sm:text-[13px] hover:text-[#10853B] transition-colors mt-auto group/btn"
+                      className="w-max inline-flex items-center justify-center gap-1.5 text-[#139D46] font-sans font-semibold text-[11px] sm:text-[12px] hover:text-[#10853B] transition-colors mt-auto group/btn"
                     >
-                      Explore Plots <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover/btn:translate-x-1" />
+                      Explore Plots <ArrowRight className="w-3 h-3 transition-transform group-hover/btn:translate-x-1" />
                     </Link>
                   </div>
                 </div>

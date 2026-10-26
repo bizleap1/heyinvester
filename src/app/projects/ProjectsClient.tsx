@@ -5,9 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowUpRight, ShieldCheck, MapPin } from 'lucide-react';
-import { PROJECTS } from '@/lib/projects-data';
 
-export default function ProjectsClient() {
+export default function ProjectsClient({ projects = [] }: { projects?: any[] }) {
   const searchParams = useSearchParams();
   const initialCorridor = searchParams.get('corridor') || 'all';
 
@@ -23,12 +22,19 @@ export default function ProjectsClient() {
   }, [searchParams]);
 
   const filteredProjects = useMemo(() => {
-    return PROJECTS.filter((project) => {
+    return projects.filter((project) => {
       // Filter Corridor / Area
       if (selectedCorridor !== 'all') {
-        const areaMatch = project.area.toLowerCase().includes(selectedCorridor.toLowerCase());
-        const locMatch = project.location.toLowerCase().includes(selectedCorridor.toLowerCase());
-        if (!areaMatch && !locMatch) return false;
+        const query = selectedCorridor.toLowerCase();
+        const areaLower = (project.area || '').toLowerCase();
+        const locLower = (project.location || '').toLowerCase();
+
+        let match = areaLower.includes(query) || locLower.includes(query);
+        // If Koradi selected, also match Godhani (Koradi-Godhani northern corridor)
+        if (!match && query === 'koradi') {
+          match = areaLower.includes('godhani') || locLower.includes('godhani');
+        }
+        if (!match) return false;
       }
       // Filter Status
       if (selectedStatus !== 'all' && project.status !== selectedStatus) {
@@ -76,6 +82,7 @@ export default function ProjectsClient() {
               { id: 'Wardha', label: 'Wardha Road' },
               { id: 'Amravati', label: 'Amravati Road' },
               { id: 'Hingna', label: 'Hingna' },
+              { id: 'Koradi', label: 'Koradi Road' },
               { id: 'Godhani', label: 'Godhani' },
             ].map((tab) => {
               const active = selectedCorridor === tab.id;
@@ -122,7 +129,7 @@ export default function ProjectsClient() {
 
         {/* Results Counter */}
         <div className="pt-6 pb-2 flex items-center justify-between text-[13px] font-sans text-[#56605A]">
-          <span>Showing <strong className="text-[#111714]">{filteredProjects.length}</strong> of <strong className="text-[#111714]">{PROJECTS.length}</strong> verified developments</span>
+          <span>Showing <strong className="text-[#111714]">{filteredProjects.length}</strong> of <strong className="text-[#111714]">{projects.length}</strong> verified developments</span>
           {(selectedCorridor !== 'all' || selectedStatus !== 'all' || selectedType !== 'all') && (
             <button
               onClick={() => {
@@ -177,15 +184,28 @@ export default function ProjectsClient() {
                 </div>
 
                 {project.rera && (
-                  <div className="absolute top-4 right-4 z-10 hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[10px] bg-white/95 backdrop-blur-sm text-[#111714] rounded-[4px] font-bold uppercase tracking-wider shadow-sm">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#139D46]" strokeWidth={2.5} />
-                    <span>RERA</span>
+                  <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] bg-white/95 backdrop-blur-xs text-[#111714] rounded-lg font-bold border border-[#111714] shadow-sm">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#111714] shrink-0" strokeWidth={2.5} />
+                    <span className="font-mono font-extrabold text-[#111714]">{project.rera}</span>
                   </div>
                 )}
               </Link>
 
               {/* Card Body */}
-              <div className="p-6 space-y-4 flex flex-col flex-grow">
+              <div className="p-6 space-y-3.5 flex flex-col flex-grow">
+                {/* RERA Main Highlight Strip (Black & White) */}
+                {project.rera ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white text-[#111714] border border-[#111714] rounded-lg text-xs font-bold w-fit shadow-2xs">
+                    <ShieldCheck className="w-4 h-4 text-[#111714] shrink-0" strokeWidth={2.5} />
+                    <span>MahaRERA: <span className="font-mono font-extrabold tracking-wide text-[#111714]">{project.rera}</span></span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-[#111714]/40 rounded-lg text-[11px] font-semibold text-[#111714] w-fit">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#111714] shrink-0" />
+                    <span>NMRDA & RL Sanctioned</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-start gap-4">
                   <h2 className="font-display text-[22px] lg:text-[24px] text-[#111714] leading-tight">
                     <Link
@@ -207,7 +227,7 @@ export default function ProjectsClient() {
                   <span className="line-clamp-1">{project.location}</span>
                 </p>
 
-                <p className="text-[13px] md:text-[14px] text-[#56605A] line-clamp-2 leading-relaxed font-sans mt-2 min-h-[42px]">
+                <p className="text-[13px] md:text-[14px] text-[#56605A] line-clamp-2 leading-relaxed font-sans min-h-[42px]">
                   {project.description}
                 </p>
 
@@ -218,16 +238,16 @@ export default function ProjectsClient() {
                       Plot Sizes
                     </span>
                     <span className="text-[13px] font-medium text-[#111714] block">
-                      {project.plotSizes.join(' / ')}
+                      {project.plotSizes.join(' / ') || 'Custom Plots'}
                     </span>
                   </div>
 
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#56605A] block font-sans mb-1">
-                      Approvals
+                      MahaRERA Reg.
                     </span>
-                    <span className="text-[13px] font-medium text-[#111714] block line-clamp-1">
-                      {project.approvals.join(', ') || 'RERA'}
+                    <span className="text-[12px] sm:text-[13px] font-bold font-mono text-[#111714] block line-clamp-1">
+                      {project.rera || project.approvals.join(', ') || 'Registered'}
                     </span>
                   </div>
                 </div>

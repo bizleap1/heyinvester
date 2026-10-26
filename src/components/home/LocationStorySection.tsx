@@ -15,7 +15,8 @@ export default function LocationStorySection() {
     { name: 'Amravati Road (NH-53) & Wadi Chouk', corridor: 'Amravati Road' },
     { name: 'Outer Ring Road (ORR) Interchange', corridor: 'Wanadongri / Hingna' },
     { name: 'Hingna MIDC & YCCE Engineering Campus', corridor: 'Hingna' },
-    { name: 'Godhani Railway Station & DP Road Node', corridor: 'Godhani' },
+    { name: 'Shri Mahalaxmi Jagdamba Koradi Temple & Lake', corridor: 'Koradi Road' },
+    { name: 'Godhani Railway Station & DP Road Node', corridor: 'Koradi / Godhani' },
   ];
 
   return (

@@ -6,9 +6,12 @@ import Image from 'next/image';
 import { ArrowUpRight, MapPin, Phone, Mail, ShieldCheck } from '@/components/ui/icons';
 import { COMPANY_INFO } from '@/lib/company-data';
 import { PROJECTS } from '@/lib/projects-data';
+import { useSiteSettings } from '@/components/layout/SiteSettingsProvider';
+import { Instagram, Facebook, Youtube, Linkedin } from '@/components/ui/social-icons';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const settings = useSiteSettings();
 
   return (
     <footer className="bg-[#111714] text-[#FAF9F6] pt-16 pb-12 border-t border-[#2A332E]">
@@ -32,7 +35,31 @@ export default function Footer() {
             </p>
             <div className="inline-flex items-center gap-3 px-3.5 py-2 bg-[#139D46]/10 border border-[#139D46]/20 rounded-none text-xs text-[#139D46]">
               <ShieldCheck className="w-4 h-4 text-[#139D46]" />
-              <span>MahaRERA Reg. No. <strong className="text-white tracking-wider">{COMPANY_INFO.reraNumber}</strong></span>
+              <span>MahaRERA Reg. No. <strong className="text-white tracking-wider">{settings.mahaReraNumber}</strong></span>
+            </div>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-4 pt-2">
+              {settings.instagramUrl && (
+                <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-[#A0A8A3] hover:text-[#139D46] transition-colors">
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {settings.facebookUrl && (
+                <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-[#A0A8A3] hover:text-[#139D46] transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+              {settings.youtubeUrl && (
+                <a href={settings.youtubeUrl} target="_blank" rel="noopener noreferrer" className="text-[#A0A8A3] hover:text-[#139D46] transition-colors">
+                  <Youtube className="w-5 h-5" />
+                </a>
+              )}
+              {settings.linkedinUrl && (
+                <a href={settings.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[#A0A8A3] hover:text-[#139D46] transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -57,24 +84,22 @@ export default function Footer() {
             <div className="space-y-4 text-[#A0A8A3]">
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-[#139D46] mt-0.5 shrink-0" />
-                <address className="not-italic leading-relaxed">
-                  {COMPANY_INFO.address.line1},<br />
-                  {COMPANY_INFO.address.line2},<br />
-                  {COMPANY_INFO.address.city}, {COMPANY_INFO.address.state}
+                <address className="not-italic leading-relaxed whitespace-pre-wrap">
+                  {settings.address}
                 </address>
               </div>
 
               {/* Big Phone Number CTA */}
               <div className="pt-2 pb-1">
                 <a
-                  href={`tel:${COMPANY_INFO.phoneRaw}`}
+                  href={`tel:${settings.phoneRaw}`}
                   className="inline-flex items-center gap-3 group"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#139D46]/10 border border-[#139D46]/20 flex items-center justify-center group-hover:bg-[#139D46] transition-colors duration-300">
                     <Phone className="w-4 h-4 text-[#139D46] group-hover:text-white transition-colors" />
                   </div>
                   <span className="text-white text-[18px] md:text-[20px] font-sans font-medium tracking-wide group-hover:text-[#139D46] transition-colors">
-                    {COMPANY_INFO.phone}
+                    {settings.phone}
                   </span>
                 </a>
               </div>
@@ -82,10 +107,10 @@ export default function Footer() {
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-[#139D46] shrink-0" />
                 <a
-                  href={`mailto:${COMPANY_INFO.email}`}
+                  href={`mailto:${settings.email}`}
                   className="hover:text-[#139D46] transition-colors text-white"
                 >
-                  {COMPANY_INFO.email}
+                  {settings.email}
                 </a>
               </div>
             </div>
@@ -113,7 +138,7 @@ export default function Footer() {
         {/* Bottom Tier: Legal, Regulatory & Copyright */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-[#A0A8A3]">
           <div>
-            © {currentYear} Hey Investor Pvt. Ltd. All rights reserved. MahaRERA No. {COMPANY_INFO.reraNumber}.
+            © {currentYear} Hey Investor Pvt. Ltd. All rights reserved. MahaRERA No. {settings.mahaReraNumber}.
           </div>
           <div className="flex items-center gap-4 md:gap-6">
             <span>NMRDA & RL Sanctioned Projects</span>
